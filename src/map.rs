@@ -8,15 +8,12 @@ pub struct Map(pub Vec<Entity>);
 
 impl Plugin for MapPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(Map(Vec::new())).add_startup_system(spawn_map);
+        app.insert_resource(Map(Vec::new()))
+            .add_startup_system(spawn_map);
     }
 }
 
-pub fn spawn_map(
-    mut commands: Commands,
-    mut map: ResMut<Map>,
-    asset_server: Res<AssetServer>,
-) {
+pub fn spawn_map(mut commands: Commands, mut map: ResMut<Map>, asset_server: Res<AssetServer>) {
     let texture_handle = asset_server.load("ground.png");
 
     for y in -(TILE_COUNT_Y as i32)..=TILE_COUNT_Y as i32 {

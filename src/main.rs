@@ -11,10 +11,12 @@ mod animations;
 mod map;
 mod player;
 mod texture_atlas;
+mod trees;
 
 use map::MapPlugin;
 use player::*;
 use texture_atlas::AtlasPlugin;
+use trees::TreePlugin;
 
 fn main() {
     let height = 900.0;
@@ -31,6 +33,7 @@ fn main() {
         .add_plugin(AtlasPlugin)
         .add_plugin(MapPlugin)
         .add_plugin(PlayerPlugin)
+        .add_plugin(TreePlugin)
         .add_startup_system(camera_setup)
         .add_system(camera_follow_player.after(player_movement))
         .run();
