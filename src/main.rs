@@ -26,6 +26,7 @@ fn main() {
             present_mode: PresentMode::Fifo,
             ..Default::default()
         })
+        .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
         .add_plugins(DefaultPlugins)
         .add_plugin(AtlasPlugin)
         .add_plugin(MapPlugin)

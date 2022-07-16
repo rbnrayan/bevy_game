@@ -1,7 +1,7 @@
 use crate::{
     animations::{Animation, AnimationTimer, Animations},
     texture_atlas::AtlasHandle,
-    SCALE,
+    SCALE, TILE_SIZE, TILE_COUNT_X, TILE_COUNT_Y,
 };
 use bevy::prelude::*;
 
@@ -45,20 +45,28 @@ pub fn player_movement(
     player.state = PlayerState::Standing(player.direction);
 
     if keys.pressed(KeyCode::Z) {
-        transform.translation.y += player.speed * time.delta_seconds();
+        if transform.translation.y < TILE_SIZE * SCALE * TILE_COUNT_Y as f32 {
+            transform.translation.y += player.speed * time.delta_seconds();
+        }
         player.state = PlayerState::Moving(Direction::Up);
     }
     if keys.pressed(KeyCode::S) {
-        transform.translation.y -= player.speed * time.delta_seconds();
+        if transform.translation.y > -(TILE_SIZE * SCALE * TILE_COUNT_Y as f32) {
+            transform.translation.y -= player.speed * time.delta_seconds();
+        }
         player.state = PlayerState::Moving(Direction::Down);
     }
     if keys.pressed(KeyCode::D) {
-        transform.translation.x += player.speed * time.delta_seconds();
+        if transform.translation.x < TILE_SIZE * SCALE * TILE_COUNT_X as f32 {
+            transform.translation.x += player.speed * time.delta_seconds();
+        }
         player.state = PlayerState::Moving(Direction::Right);
         player.direction = Direction::Right;
     }
     if keys.pressed(KeyCode::Q) {
-        transform.translation.x -= player.speed * time.delta_seconds();
+        if transform.translation.x > -(TILE_SIZE * SCALE * TILE_COUNT_X as f32) {
+            transform.translation.x -= player.speed * time.delta_seconds();
+        }
         player.state = PlayerState::Moving(Direction::Left);
         player.direction = Direction::Left;
     }
