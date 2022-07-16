@@ -5,6 +5,8 @@ use crate::{
 use bevy::prelude::*;
 use rand::{self, Rng};
 
+pub const TREE_AMOUNT: usize = 10;
+
 pub struct TreePlugin;
 
 impl Plugin for TreePlugin {
@@ -27,7 +29,7 @@ pub fn spawn_tree(
     let mut rng = rand::thread_rng();
 
     loop {
-        if tree_amount >= 10 {
+        if tree_amount >= TREE_AMOUNT {
             break;
         }
 
