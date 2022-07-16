@@ -74,7 +74,7 @@ pub fn player_movement(
 
     if target.y < TILE_SIZE * SCALE * TILE_COUNT_Y as f32
         && target.y > -(TILE_SIZE * SCALE * TILE_COUNT_Y as f32)
-        && !tree_collision_check(target, &tree_query)
+        && !tree_collision(target, &tree_query)
     {
         transform.translation = target;
     }
@@ -83,22 +83,23 @@ pub fn player_movement(
 
     if target.x < TILE_SIZE * SCALE * TILE_COUNT_X as f32
         && target.x > -(TILE_SIZE * SCALE * TILE_COUNT_X as f32)
-        && !tree_collision_check(target, &tree_query)
+        && !tree_collision(target, &tree_query)
     {
         transform.translation = target;
     }
 }
 
-pub fn tree_collision_check(
+pub fn tree_collision(
     target_player_pos: Vec3,
     tree_query: &Query<&Transform, (With<Tree>, Without<Player>)>,
 ) -> bool {
     for tree_transform in tree_query.iter() {
         let collision = collide(
             target_player_pos,
-            Vec2::new(9.0 * SCALE, 12.0 * SCALE),
-            tree_transform.translation + Vec3::new(0.0, -10.0 * SCALE, 0.0),
-            Vec2::new(9.0 * SCALE, 3.0 * SCALE),
+            Vec2::new(9.0 * SCALE, 12.0 * SCALE), // character real size: 9x12
+            tree_transform.translation + Vec3::new(0.0, -10.0 * SCALE, 0.0), // collide only with
+                                                                             // the tree root
+            Vec2::new(9.0 * SCALE, 3.0 * SCALE),  // adjust the tree size to match only the root
         );
         if collision.is_some() {
             return true;
