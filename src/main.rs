@@ -3,7 +3,9 @@ use bevy::{prelude::*, window::PresentMode};
 pub const RESOLUTION: f32 = 16.0 / 9.0;
 pub const SCALE: f32 = 5.0;
 pub const TILE_SIZE: f32 = 32.0;
-pub const TILE_COUNT_X: isize = 8;
+// Map size: 8 * 5
+pub const TILE_COUNT_X: usize = 8;
+pub const TILE_COUNT_Y: usize = 5;
 
 mod animations;
 mod map;
@@ -44,8 +46,14 @@ fn camera_follow_player(
     let mut camera_transform = camera_query.single_mut();
     let player_transform = player_query.single();
 
-    if player_transform.translation.x < TILE_SIZE * SCALE * (TILE_COUNT_X / 2) as f32
-        && player_transform.translation.x > TILE_SIZE * SCALE * -(TILE_COUNT_X / 2) as f32 {
+    if player_transform.translation.x < TILE_SIZE * SCALE * (TILE_COUNT_X as f32 / 2.0)
+        && player_transform.translation.x > TILE_SIZE * SCALE * -(TILE_COUNT_X as f32 / 2.0)
+    {
         camera_transform.translation.x = player_transform.translation.x;
+    }
+    if player_transform.translation.y < TILE_SIZE * SCALE * (TILE_COUNT_Y as f32 / 1.5)
+        && player_transform.translation.y > TILE_SIZE * SCALE * -(TILE_COUNT_Y as f32 / 1.5)
+    {
+        camera_transform.translation.y = player_transform.translation.y;
     }
 }

@@ -1,4 +1,4 @@
-use crate::{SCALE, TILE_SIZE, TILE_COUNT_X};
+use crate::{SCALE, TILE_COUNT_X, TILE_COUNT_Y, TILE_SIZE};
 use bevy::prelude::*;
 
 pub struct MapPlugin;
@@ -13,8 +13,8 @@ pub fn spawn_map(mut commands: Commands, asset_server: Res<AssetServer>) {
     let texture_handle = asset_server.load("ground.png");
     let mut map = Vec::new();
 
-    for y in -3..=3 {
-        for x in -TILE_COUNT_X..=TILE_COUNT_X {
+    for y in -(TILE_COUNT_Y as i32)..=TILE_COUNT_Y as i32 {
+        for x in -(TILE_COUNT_X as i32)..=TILE_COUNT_X as i32 {
             map.push(
                 commands
                     .spawn_bundle(SpriteBundle {

@@ -16,12 +16,14 @@ impl Plugin for PlayerPlugin {
 }
 
 pub enum PlayerState {
-    Standing(PlayerDirection),
-    Moving(PlayerDirection),
+    Standing(Direction),
+    Moving(Direction),
 }
 
 #[derive(Clone, Copy)]
-pub enum PlayerDirection {
+pub enum Direction {
+    Up,
+    Down,
     Right,
     Left,
 }
@@ -29,7 +31,7 @@ pub enum PlayerDirection {
 #[derive(Component)]
 pub struct Player {
     pub state: PlayerState,
-    pub direction: PlayerDirection,
+    pub direction: Direction,
     pub speed: f32,
 }
 
@@ -42,15 +44,23 @@ pub fn player_movement(
 
     player.state = PlayerState::Standing(player.direction);
 
+    if keys.pressed(KeyCode::Z) {
+        transform.translation.y += player.speed * time.delta_seconds();
+        player.state = PlayerState::Moving(Direction::Up);
+    }
+    if keys.pressed(KeyCode::S) {
+        transform.translation.y -= player.speed * time.delta_seconds();
+        player.state = PlayerState::Moving(Direction::Down);
+    }
     if keys.pressed(KeyCode::D) {
         transform.translation.x += player.speed * time.delta_seconds();
-        player.state = PlayerState::Moving(PlayerDirection::Right);
-        player.direction = PlayerDirection::Right;
+        player.state = PlayerState::Moving(Direction::Right);
+        player.direction = Direction::Right;
     }
     if keys.pressed(KeyCode::Q) {
         transform.translation.x -= player.speed * time.delta_seconds();
-        player.state = PlayerState::Moving(PlayerDirection::Left);
-        player.direction = PlayerDirection::Left;
+        player.state = PlayerState::Moving(Direction::Left);
+        player.direction = Direction::Left;
     }
 }
 
@@ -62,10 +72,9 @@ pub fn spawn_player(mut commands: Commands, texture_atlas_handle: Res<AtlasHandl
                 .with_translation(Vec3::new(0.0, 0.0, 10.0)),
             ..Default::default()
         })
-        .insert(AnimationTimer(Timer::from_seconds(0.2, true)))
         .insert(Player {
-            state: PlayerState::Standing(PlayerDirection::Right),
-            direction: PlayerDirection::Right,
+            state: PlayerState::Standing(Direction::Right),
+            direction: Direction::Right,
             speed: 85.0 * SCALE,
         })
         .insert(Animations {
@@ -74,11 +83,25 @@ pub fn spawn_player(mut commands: Commands, texture_atlas_handle: Res<AtlasHandl
                 Animation {
                     frames: vec![1, 2],
                     current_frame: 0,
+                    timer: AnimationTimer(Timer::from_seconds(0.2, true)),
                 },
                 // index 1: running->left
                 Animation {
                     frames: vec![4, 5],
                     current_frame: 0,
+                    timer: AnimationTimer(Timer::from_seconds(0.2, true)),
+                },
+                // index 2: running->up/down right
+                Animation {
+                    frames: vec![6, 7],
+                    current_frame: 0,
+                    timer: AnimationTimer(Timer::from_seconds(0.2, true)),
+                },
+                // index 3: running->up/down left
+                Animation {
+                    frames: vec![8, 9],
+                    current_frame: 0,
+                    timer: AnimationTimer(Timer::from_seconds(0.2, true)),
                 },
             ],
         });
@@ -86,39 +109,29 @@ pub fn spawn_player(mut commands: Commands, texture_atlas_handle: Res<AtlasHandl
 
 pub fn animate_sprite(
     time: Res<Time>,
-    mut query: Query<(
-        &Player,
-        &mut AnimationTimer,
-        &mut TextureAtlasSprite,
-        &mut Animations,
-    )>,
+    mut query: Query<(&Player, &mut TextureAtlasSprite, &mut Animations)>,
 ) {
-    for (player, mut timer, mut sprite, mut animations) in query.iter_mut() {
+    for (player, mut sprite, mut animations) in query.iter_mut() {
         match player.state {
-            PlayerState::Moving(PlayerDirection::Right) => {
-                let mut animation = &mut animations.animations[0];
-
-                timer.tick(time.delta());
-
-                if timer.just_finished() {
-                    animation.current_frame =
-                        (animation.current_frame + 1) % animation.frames.len();
-                    sprite.index = animation.frames[animation.current_frame];
-                }
+            PlayerState::Moving(Direction::Right) => {
+                let animation = &mut animations.animations[0];
+                animation.update(&time, &mut sprite);
             }
-            PlayerState::Moving(PlayerDirection::Left) => {
-                let mut animation = &mut animations.animations[1];
-
-                timer.tick(time.delta());
-
-                if timer.just_finished() {
-                    animation.current_frame =
-                        (animation.current_frame + 1) % animation.frames.len();
-                    sprite.index = animation.frames[animation.current_frame];
-                }
+            PlayerState::Moving(Direction::Left) => {
+                let animation = &mut animations.animations[1];
+                animation.update(&time, &mut sprite);
             }
-            PlayerState::Standing(PlayerDirection::Right) => sprite.index = 0,
-            PlayerState::Standing(PlayerDirection::Left) => sprite.index = 3,
+            PlayerState::Moving(Direction::Up) | PlayerState::Moving(Direction::Down) => {
+                let animation = match player.direction {
+                    Direction::Right => &mut animations.animations[2],
+                    Direction::Left => &mut animations.animations[3],
+                    _ => panic!("Unexpected direction for the player"),
+                };
+                animation.update(&time, &mut sprite);
+            }
+            PlayerState::Standing(Direction::Right) => sprite.index = 0,
+            PlayerState::Standing(Direction::Left) => sprite.index = 3,
+            _ => {}
         }
     }
 }
