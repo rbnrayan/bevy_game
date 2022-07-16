@@ -7,8 +7,8 @@ pub const TILE_SIZE: f32 = 32.0;
 pub const TILE_COUNT_X: usize = 8;
 pub const TILE_COUNT_Y: usize = 5;
 
-mod camera;
 mod animations;
+mod camera;
 mod map;
 mod player;
 mod texture_atlas;

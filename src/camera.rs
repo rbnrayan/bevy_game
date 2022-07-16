@@ -1,14 +1,15 @@
-use bevy::prelude::*;
 use crate::{
-    player::{Player, player_movement},
-    TILE_SIZE, SCALE, TILE_COUNT_X, TILE_COUNT_Y,
+    player::{player_movement, Player},
+    SCALE, TILE_COUNT_X, TILE_COUNT_Y, TILE_SIZE,
 };
+use bevy::prelude::*;
 
 pub struct CameraPlugin;
 
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(camera_setup).add_system(camera_follow_player.after(player_movement));
+        app.add_startup_system(camera_setup)
+            .add_system(camera_follow_player.after(player_movement));
     }
 }
 

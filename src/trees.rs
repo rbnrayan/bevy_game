@@ -5,6 +5,8 @@ use crate::{
 use bevy::prelude::*;
 use rand::{self, Rng};
 
+// TREE_SIZE: Vec2 = Vec2::new(23.0, 32.0);
+
 pub const TREE_AMOUNT: usize = 10;
 
 pub struct TreePlugin;
@@ -50,7 +52,7 @@ pub fn spawn_tree(
                         Vec3::new(
                             x as f32 * SCALE * TILE_SIZE,
                             y as f32 * SCALE * TILE_SIZE,
-                            10.0,
+                            20.0,
                         ),
                     ),
                     ..Default::default()

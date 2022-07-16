@@ -1,9 +1,10 @@
 use crate::{
     animations::{Animation, AnimationTimer, Animations},
     texture_atlas::AtlasHandle,
+    trees::Tree,
     SCALE, TILE_COUNT_X, TILE_COUNT_Y, TILE_SIZE,
 };
-use bevy::prelude::*;
+use bevy::{prelude::*, sprite::collide_aabb::collide};
 
 // PLAYER_SIZE: Vec2 = Vec2::new(9.0, 12.0);
 
@@ -40,42 +41,70 @@ pub struct Player {
 pub fn player_movement(
     time: Res<Time>,
     keys: Res<Input<KeyCode>>,
+    tree_query: Query<&Transform, (With<Tree>, Without<Player>)>,
     mut query: Query<(&mut Transform, &mut Player)>,
 ) {
     let (mut transform, mut player) = query.single_mut();
 
     player.state = PlayerState::Standing(player.direction);
 
+    let mut y_delta = 0.0;
     if keys.pressed(KeyCode::Z) {
-        // ensure the player don't leave the map (TOP)
-        if transform.translation.y < TILE_SIZE * SCALE * TILE_COUNT_Y as f32 {
-            transform.translation.y += player.speed * time.delta_seconds();
-        }
+        y_delta += player.speed * time.delta_seconds();
         player.state = PlayerState::Moving(Direction::Up);
     }
     if keys.pressed(KeyCode::S) {
-        // ensure the player don't leave the map (BOTTOM)
-        if transform.translation.y > -(TILE_SIZE * SCALE * TILE_COUNT_Y as f32) {
-            transform.translation.y -= player.speed * time.delta_seconds();
-        }
+        y_delta -= player.speed * time.delta_seconds();
         player.state = PlayerState::Moving(Direction::Down);
     }
+
+    let mut x_delta = 0.0;
     if keys.pressed(KeyCode::D) {
-        // ensure the player don't leave the map (RIGHT)
-        if transform.translation.x < TILE_SIZE * SCALE * TILE_COUNT_X as f32 {
-            transform.translation.x += player.speed * time.delta_seconds();
-        }
+        x_delta += player.speed * time.delta_seconds();
         player.state = PlayerState::Moving(Direction::Right);
         player.direction = Direction::Right;
     }
     if keys.pressed(KeyCode::Q) {
-        // ensure the player don't leave the map (LEFT)
-        if transform.translation.x > -(TILE_SIZE * SCALE * TILE_COUNT_X as f32) {
-            transform.translation.x -= player.speed * time.delta_seconds();
-        }
+        x_delta -= player.speed * time.delta_seconds();
         player.state = PlayerState::Moving(Direction::Left);
         player.direction = Direction::Left;
     }
+
+    let target = transform.translation + Vec3::new(0.0, y_delta, 0.0);
+
+    if target.y < TILE_SIZE * SCALE * TILE_COUNT_Y as f32
+        && target.y > -(TILE_SIZE * SCALE * TILE_COUNT_Y as f32)
+        && !tree_collision_check(target, &tree_query)
+    {
+        transform.translation = target;
+    }
+
+    let target = transform.translation + Vec3::new(x_delta, 0.0, 0.0);
+
+    if target.x < TILE_SIZE * SCALE * TILE_COUNT_X as f32
+        && target.x > -(TILE_SIZE * SCALE * TILE_COUNT_X as f32)
+        && !tree_collision_check(target, &tree_query)
+    {
+        transform.translation = target;
+    }
+}
+
+pub fn tree_collision_check(
+    target_player_pos: Vec3,
+    tree_query: &Query<&Transform, (With<Tree>, Without<Player>)>,
+) -> bool {
+    for tree_transform in tree_query.iter() {
+        let collision = collide(
+            target_player_pos,
+            Vec2::new(9.0 * SCALE, 12.0 * SCALE),
+            tree_transform.translation + Vec3::new(0.0, -10.0 * SCALE, 0.0),
+            Vec2::new(9.0 * SCALE, 3.0 * SCALE),
+        );
+        if collision.is_some() {
+            return true;
+        }
+    }
+    false
 }
 
 pub fn spawn_player(mut commands: Commands, texture_atlas_handle: Res<AtlasHandle>) {
