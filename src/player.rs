@@ -1,7 +1,7 @@
 use crate::{
     animations::{Animation, AnimationTimer, Animations},
     texture_atlas::AtlasHandle,
-    SCALE, TILE_SIZE, TILE_COUNT_X, TILE_COUNT_Y,
+    SCALE, TILE_COUNT_X, TILE_COUNT_Y, TILE_SIZE,
 };
 use bevy::prelude::*;
 
