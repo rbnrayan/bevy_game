@@ -60,12 +60,6 @@ pub fn spawn_tree(
         );
         tree_amount += 1;
     }
-
-    //commands
-    //    .spawn()
-    //    .insert(Transform::default())
-    //    .insert(GlobalTransform::default())
-    //    .push_children(&map);
 }
 
 pub fn check_tree_position(pos: Vec2, tree_query: &Query<&Transform, With<Tree>>) -> bool {

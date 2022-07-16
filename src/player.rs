@@ -5,6 +5,8 @@ use crate::{
 };
 use bevy::prelude::*;
 
+// PLAYER_SIZE: Vec2 = Vec2::new(9.0, 12.0);
+
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
@@ -45,18 +47,21 @@ pub fn player_movement(
     player.state = PlayerState::Standing(player.direction);
 
     if keys.pressed(KeyCode::Z) {
+        // ensure the player don't leave the map (TOP)
         if transform.translation.y < TILE_SIZE * SCALE * TILE_COUNT_Y as f32 {
             transform.translation.y += player.speed * time.delta_seconds();
         }
         player.state = PlayerState::Moving(Direction::Up);
     }
     if keys.pressed(KeyCode::S) {
+        // ensure the player don't leave the map (BOTTOM)
         if transform.translation.y > -(TILE_SIZE * SCALE * TILE_COUNT_Y as f32) {
             transform.translation.y -= player.speed * time.delta_seconds();
         }
         player.state = PlayerState::Moving(Direction::Down);
     }
     if keys.pressed(KeyCode::D) {
+        // ensure the player don't leave the map (RIGHT)
         if transform.translation.x < TILE_SIZE * SCALE * TILE_COUNT_X as f32 {
             transform.translation.x += player.speed * time.delta_seconds();
         }
@@ -64,6 +69,7 @@ pub fn player_movement(
         player.direction = Direction::Right;
     }
     if keys.pressed(KeyCode::Q) {
+        // ensure the player don't leave the map (LEFT)
         if transform.translation.x > -(TILE_SIZE * SCALE * TILE_COUNT_X as f32) {
             transform.translation.x -= player.speed * time.delta_seconds();
         }
@@ -133,7 +139,7 @@ pub fn animate_sprite(
                 let animation = match player.direction {
                     Direction::Right => &mut animations.animations[2],
                     Direction::Left => &mut animations.animations[3],
-                    _ => panic!("Unexpected direction for the player"),
+                    _ => panic!("Player: Unexpected direction"),
                 };
                 animation.update(&time, &mut sprite);
             }
