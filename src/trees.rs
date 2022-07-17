@@ -30,6 +30,7 @@ pub fn spawn_tree(
     texture_atlas_handle: Res<AtlasHandle>,
     tree_query: Query<&Transform, With<Tree>>,
 ) {
+    let texture_sprite = TextureAtlasSprite::new(15);
     let mut tree_amount = tree_query.iter().count();
     let mut rng = rand::thread_rng();
 
@@ -50,6 +51,7 @@ pub fn spawn_tree(
         map.push(
             commands
                 .spawn_bundle(SpriteSheetBundle {
+                    sprite: texture_sprite.clone(),
                     texture_atlas: texture_atlas_handle.clone(),
                     transform: Transform::from_scale(Vec3::splat(SCALE)).with_translation(
                         Vec3::new(
