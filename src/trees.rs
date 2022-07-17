@@ -1,6 +1,8 @@
 use crate::{
     map::{spawn_map, Map},
+    texture_atlas::AtlasHandle,
     SCALE, TILE_COUNT_X, TILE_COUNT_Y, TILE_SIZE,
+    animations::{Animations, Animation, AnimationTimer},
 };
 use bevy::prelude::*;
 use rand::{self, Rng};
@@ -13,7 +15,9 @@ pub struct TreePlugin;
 
 impl Plugin for TreePlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(spawn_tree.after(spawn_map));
+        app
+            .add_startup_system(spawn_tree.after(spawn_map))
+            .add_system(animate_tree);
     }
 }
 
@@ -23,10 +27,9 @@ pub struct Tree;
 pub fn spawn_tree(
     mut commands: Commands,
     mut map: ResMut<Map>,
-    asset_server: Res<AssetServer>,
+    texture_atlas_handle: Res<AtlasHandle>,
     tree_query: Query<&Transform, With<Tree>>,
 ) {
-    let texture_handle = asset_server.load("tree.png");
     let mut tree_amount = tree_query.iter().count();
     let mut rng = rand::thread_rng();
 
@@ -46,8 +49,8 @@ pub fn spawn_tree(
 
         map.push(
             commands
-                .spawn_bundle(SpriteBundle {
-                    texture: texture_handle.clone(),
+                .spawn_bundle(SpriteSheetBundle {
+                    texture_atlas: texture_atlas_handle.clone(),
                     transform: Transform::from_scale(Vec3::splat(SCALE)).with_translation(
                         Vec3::new(
                             x as f32 * SCALE * TILE_SIZE,
@@ -58,6 +61,15 @@ pub fn spawn_tree(
                     ..Default::default()
                 })
                 .insert(Tree)
+                .insert(Animations {
+                    animations: vec![
+                        Animation {
+                            frames: vec![10, 11, 12, 13, 14],
+                            current_frame: 0,
+                            timer: AnimationTimer(Timer::from_seconds(0.5, true)),
+                        },
+                    ],
+                })
                 .id(),
         );
         tree_amount += 1;
@@ -71,4 +83,13 @@ pub fn check_tree_position(pos: Vec2, tree_query: &Query<&Transform, With<Tree>>
         }
     }
     false
+}
+
+fn animate_tree(
+    time: Res<Time>,
+    mut tree_query: Query<(&mut TextureAtlasSprite, &mut Animations), With<Tree>>,
+) {
+    for (mut sprite, mut animations) in tree_query.iter_mut() {
+        animations.animations[0].update(&time, &mut sprite);
+    }
 }

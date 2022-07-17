@@ -12,7 +12,8 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(spawn_player)
+        app
+            .add_startup_system(spawn_player)
             .add_system(player_movement)
             .add_system(animate_sprite);
     }
@@ -98,8 +99,8 @@ pub fn tree_collision(
             target_player_pos,
             Vec2::new(9.0 * SCALE, 12.0 * SCALE), // character real size: 9x12
             tree_transform.translation + Vec3::new(0.0, -11.0 * SCALE, 0.0), // collide only with
-                                                                             // the tree root
-            Vec2::new(12.0 * SCALE, 5.0 * SCALE),  // adjust the tree size to match only the root
+            // the tree root
+            Vec2::new(12.0 * SCALE, 5.0 * SCALE), // adjust the tree size to match only the root
         );
         if collision.is_some() {
             return true;
