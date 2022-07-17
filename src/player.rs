@@ -97,9 +97,9 @@ pub fn tree_collision(
         let collision = collide(
             target_player_pos,
             Vec2::new(9.0 * SCALE, 12.0 * SCALE), // character real size: 9x12
-            tree_transform.translation + Vec3::new(0.0, -10.0 * SCALE, 0.0), // collide only with
+            tree_transform.translation + Vec3::new(0.0, -11.0 * SCALE, 0.0), // collide only with
                                                                              // the tree root
-            Vec2::new(9.0 * SCALE, 3.0 * SCALE),  // adjust the tree size to match only the root
+            Vec2::new(12.0 * SCALE, 5.0 * SCALE),  // adjust the tree size to match only the root
         );
         if collision.is_some() {
             return true;
@@ -119,7 +119,7 @@ pub fn spawn_player(mut commands: Commands, texture_atlas_handle: Res<AtlasHandl
         .insert(Player {
             state: PlayerState::Standing(Direction::Right),
             direction: Direction::Right,
-            speed: 85.0 * SCALE,
+            speed: 80.0 * SCALE,
         })
         .insert(Animations {
             animations: vec![
