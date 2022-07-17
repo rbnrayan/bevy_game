@@ -23,7 +23,6 @@ pub enum PlayerState {
     Standing(Direction),
     Moving(Direction),
 }
-
 #[derive(Clone, Copy)]
 pub enum Direction {
     Up,
