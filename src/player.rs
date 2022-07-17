@@ -15,13 +15,28 @@ impl Plugin for PlayerPlugin {
         app
             .add_startup_system(spawn_player)
             .add_system(player_movement)
-            .add_system(animate_sprite);
+            .add_system(player_action)
+            .add_system(animate_sprite.after(player_movement));
     }
 }
 
+pub enum ActionState {
+    Perform,
+    Recover,
+    Ready,
+}
+
+#[derive(Component)]
+pub struct PlayerAction {
+    pub state: ActionState,
+    pub action_timer: Timer,
+    pub recover_timer: Timer,
+}
+
 pub enum PlayerState {
-    Standing(Direction),
+    Stand(Direction),
     Moving(Direction),
+    Chop(Direction),
 }
 #[derive(Clone, Copy)]
 pub enum Direction {
@@ -46,7 +61,10 @@ pub fn player_movement(
 ) {
     let (mut transform, mut player) = query.single_mut();
 
-    player.state = PlayerState::Standing(player.direction);
+    match player.state {
+        PlayerState::Chop(_) => {}
+        _ => player.state = PlayerState::Stand(player.direction),
+    }
 
     let mut y_delta = 0.0;
     if keys.pressed(KeyCode::Z) {
@@ -89,6 +107,40 @@ pub fn player_movement(
     }
 }
 
+fn player_action(
+    time: Res<Time>,
+    mouse_btn: Res<Input<MouseButton>>,
+    mut query: Query<(&mut Player, &mut PlayerAction)>,
+) {
+    let (mut player, mut action) = query.single_mut();
+
+    match action.state {
+        ActionState::Perform => {
+            action.action_timer.tick(time.delta());
+            if action.action_timer.finished() {
+                action.state = ActionState::Recover;
+                action.action_timer.reset();
+
+                player.state = PlayerState::Stand(player.direction);
+            }
+        }
+        ActionState::Recover => {
+            action.recover_timer.tick(time.delta());
+            if action.recover_timer.finished() {
+                action.state = ActionState::Ready;
+                action.recover_timer.reset();
+            }
+        }
+        ActionState::Ready => {
+            if mouse_btn.just_pressed(MouseButton::Left) {
+                player.state = PlayerState::Chop(player.direction);
+
+                action.state = ActionState::Perform;
+            }
+        }
+    }
+}
+
 pub fn tree_collision(
     target_player_pos: Vec3,
     tree_query: &Query<&Transform, (With<Tree>, Without<Player>)>,
@@ -108,7 +160,7 @@ pub fn tree_collision(
     false
 }
 
-pub fn spawn_player(mut commands: Commands, texture_atlas_handle: Res<AtlasHandle>) {
+fn spawn_player(mut commands: Commands, texture_atlas_handle: Res<AtlasHandle>) {
     commands
         .spawn_bundle(SpriteSheetBundle {
             texture_atlas: texture_atlas_handle.clone(),
@@ -117,33 +169,38 @@ pub fn spawn_player(mut commands: Commands, texture_atlas_handle: Res<AtlasHandl
             ..Default::default()
         })
         .insert(Player {
-            state: PlayerState::Standing(Direction::Right),
+            state: PlayerState::Stand(Direction::Right),
             direction: Direction::Right,
             speed: 80.0 * SCALE,
+        })
+        .insert(PlayerAction {
+            state: ActionState::Ready,
+            action_timer: Timer::from_seconds(0.2, false),
+            recover_timer: Timer::from_seconds(0.2, false),
         })
         .insert(Animations {
             animations: vec![
                 // index 0: running->right
                 Animation {
-                    frames: vec![1, 2],
+                    frames: vec![2, 3],
                     current_frame: 0,
                     timer: AnimationTimer(Timer::from_seconds(0.2, true)),
                 },
                 // index 1: running->left
                 Animation {
-                    frames: vec![4, 5],
+                    frames: vec![7, 8],
                     current_frame: 0,
                     timer: AnimationTimer(Timer::from_seconds(0.2, true)),
                 },
                 // index 2: running->up/down right
                 Animation {
-                    frames: vec![6, 7],
+                    frames: vec![10, 11],
                     current_frame: 0,
                     timer: AnimationTimer(Timer::from_seconds(0.2, true)),
                 },
                 // index 3: running->up/down left
                 Animation {
-                    frames: vec![8, 9],
+                    frames: vec![12, 13],
                     current_frame: 0,
                     timer: AnimationTimer(Timer::from_seconds(0.2, true)),
                 },
@@ -151,7 +208,7 @@ pub fn spawn_player(mut commands: Commands, texture_atlas_handle: Res<AtlasHandl
         });
 }
 
-pub fn animate_sprite(
+fn animate_sprite(
     time: Res<Time>,
     mut query: Query<(&Player, &mut TextureAtlasSprite, &mut Animations)>,
 ) {
@@ -173,8 +230,10 @@ pub fn animate_sprite(
                 };
                 animation.update(&time, &mut sprite);
             }
-            PlayerState::Standing(Direction::Right) => sprite.index = 0,
-            PlayerState::Standing(Direction::Left) => sprite.index = 3,
+            PlayerState::Chop(Direction::Right) => sprite.index = 1,
+            PlayerState::Chop(Direction::Left) => sprite.index = 6,
+            PlayerState::Stand(Direction::Right) => sprite.index = 0,
+            PlayerState::Stand(Direction::Left) => sprite.index = 5,
             _ => {}
         }
     }
