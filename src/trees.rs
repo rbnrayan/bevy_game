@@ -64,7 +64,7 @@ pub fn spawn_tree(
                 .insert(Animations {
                     animations: vec![
                         Animation {
-                            frames: vec![10, 11, 12, 13, 14],
+                            frames: vec![15, 16, 17, 18, 19],
                             current_frame: 0,
                             timer: AnimationTimer(Timer::from_seconds(0.5, true)),
                         },
