@@ -21,6 +21,9 @@ impl Plugin for TreePlugin {
 }
 
 #[derive(Component)]
+pub struct Health(pub i16);
+
+#[derive(Component)]
 pub struct Tree;
 
 pub fn spawn_tree(
@@ -62,6 +65,7 @@ pub fn spawn_tree(
                     ..Default::default()
                 })
                 .insert(Tree)
+                .insert(Health(100))
                 .insert(Animations {
                     animations: vec![Animation {
                         frames: vec![15, 16, 17, 18, 19],
