@@ -4,7 +4,10 @@ use crate::{
     trees::Tree,
     SCALE, TILE_COUNT_X, TILE_COUNT_Y, TILE_SIZE,
 };
-use bevy::{prelude::*, sprite::collide_aabb::collide};
+use bevy::{
+    prelude::*,
+    sprite::collide_aabb::{collide, Collision},
+};
 
 // PLAYER_SIZE: Vec2 = Vec2::new(9.0, 12.0);
 
@@ -12,8 +15,7 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_startup_system(spawn_player)
+        app.add_startup_system(spawn_player)
             .add_system(player_movement)
             .add_system(player_action)
             .add_system(animate_sprite.after(player_movement));
@@ -110,7 +112,11 @@ pub fn player_movement(
 fn player_action(
     time: Res<Time>,
     mouse_btn: Res<Input<MouseButton>>,
+    mut commands: Commands,
     mut query: Query<(&mut Player, &mut PlayerAction)>,
+
+    player_transform_query: Query<&Transform, With<Player>>,
+    tree_query: Query<(Entity, &Transform), With<Tree>>,
 ) {
     let (mut player, mut action) = query.single_mut();
 
@@ -133,10 +139,36 @@ fn player_action(
         }
         ActionState::Ready => {
             if mouse_btn.just_pressed(MouseButton::Left) {
+                // check if the player is near a tree
+                // if so, *animate* the sprite with particles
+                chop_tree(&mut commands, &tree_query, &player_transform_query);
                 player.state = PlayerState::Chop(player.direction);
 
                 action.state = ActionState::Perform;
             }
+        }
+    }
+}
+
+fn chop_tree(
+    commands: &mut Commands,
+    tree_query: &Query<(Entity, &Transform), With<Tree>>,
+    player_query: &Query<&Transform, With<Player>>,
+) {
+    let player_transform = player_query.single();
+
+    for (tree_entity, tree_transform) in tree_query.iter() {
+        let collide = collide(
+            player_transform.translation,
+            Vec2::new(9.0 * SCALE, 12.0 * SCALE),
+            tree_transform.translation,
+            Vec2::splat(32.0 * SCALE),
+        );
+        match collide {
+            Some(Collision::Right) | Some(Collision::Left) | Some(Collision::Inside) => {
+                commands.entity(tree_entity).despawn();
+            }
+            _ => {}
         }
     }
 }

@@ -1,8 +1,8 @@
 use crate::{
+    animations::{Animation, AnimationTimer, Animations},
     map::{spawn_map, Map},
     texture_atlas::AtlasHandle,
     SCALE, TILE_COUNT_X, TILE_COUNT_Y, TILE_SIZE,
-    animations::{Animations, Animation, AnimationTimer},
 };
 use bevy::prelude::*;
 use rand::{self, Rng};
@@ -15,8 +15,7 @@ pub struct TreePlugin;
 
 impl Plugin for TreePlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_startup_system(spawn_tree.after(spawn_map))
+        app.add_startup_system(spawn_tree.after(spawn_map))
             .add_system(animate_tree);
     }
 }
@@ -64,13 +63,11 @@ pub fn spawn_tree(
                 })
                 .insert(Tree)
                 .insert(Animations {
-                    animations: vec![
-                        Animation {
-                            frames: vec![15, 16, 17, 18, 19],
-                            current_frame: 0,
-                            timer: AnimationTimer(Timer::from_seconds(0.5, true)),
-                        },
-                    ],
+                    animations: vec![Animation {
+                        frames: vec![15, 16, 17, 18, 19],
+                        current_frame: 0,
+                        timer: AnimationTimer(Timer::from_seconds(0.5, true)),
+                    }],
                 })
                 .id(),
         );
