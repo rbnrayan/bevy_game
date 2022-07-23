@@ -9,7 +9,7 @@ use rand::{self, Rng};
 
 // TREE_SIZE: Vec2 = Vec2::new(23.0, 32.0);
 
-pub const TREE_AMOUNT: usize = 10;
+pub const TREE_AMOUNT: usize = 20;
 
 pub struct TreePlugin;
 
@@ -20,11 +20,10 @@ impl Plugin for TreePlugin {
     }
 }
 
-#[derive(Component)]
-pub struct Health(pub i16);
-
-#[derive(Component)]
-pub struct Tree;
+#[derive(Component, Clone, Copy)]
+pub struct Tree {
+    pub health: i16,
+}
 
 pub fn spawn_tree(
     mut commands: Commands,
@@ -64,8 +63,7 @@ pub fn spawn_tree(
                     ),
                     ..Default::default()
                 })
-                .insert(Tree)
-                .insert(Health(100))
+                .insert(Tree { health: 100 })
                 .insert(Animations {
                     animations: vec![Animation {
                         frames: vec![15, 16, 17, 18, 19],

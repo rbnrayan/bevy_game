@@ -3,6 +3,7 @@ use bevy::{prelude::*, window::PresentMode};
 pub const RESOLUTION: f32 = 16.0 / 9.0;
 pub const SCALE: f32 = 5.0;
 pub const TILE_SIZE: f32 = 32.0;
+
 // Map size: 8 * 5
 pub const TILE_COUNT_X: usize = 8;
 pub const TILE_COUNT_Y: usize = 5;
@@ -16,7 +17,7 @@ mod trees;
 
 use camera::CameraPlugin;
 use map::MapPlugin;
-use player::*;
+use player::PlayerPlugin;
 use texture_atlas::AtlasPlugin;
 use trees::TreePlugin;
 

@@ -1,7 +1,7 @@
 use crate::{
     animations::{Animation, AnimationTimer, Animations},
     texture_atlas::AtlasHandle,
-    trees::{Tree, Health},
+    trees::Tree,
     SCALE, TILE_COUNT_X, TILE_COUNT_Y, TILE_SIZE,
 };
 use bevy::{
@@ -37,7 +37,7 @@ pub struct PlayerAction {
 
 pub enum PlayerState {
     Stand(Direction),
-    Moving(Direction),
+    Move(Direction),
     Chop(Direction),
 }
 #[derive(Clone, Copy)]
@@ -72,22 +72,22 @@ pub fn player_movement(
     let mut y_delta = 0.0;
     if keys.pressed(KeyCode::Z) {
         y_delta += player.speed * time.delta_seconds();
-        player.state = PlayerState::Moving(Direction::Up);
+        player.state = PlayerState::Move(Direction::Up);
     }
     if keys.pressed(KeyCode::S) {
         y_delta -= player.speed * time.delta_seconds();
-        player.state = PlayerState::Moving(Direction::Down);
+        player.state = PlayerState::Move(Direction::Down);
     }
 
     let mut x_delta = 0.0;
     if keys.pressed(KeyCode::D) {
         x_delta += player.speed * time.delta_seconds();
-        player.state = PlayerState::Moving(Direction::Right);
+        player.state = PlayerState::Move(Direction::Right);
         player.direction = Direction::Right;
     }
     if keys.pressed(KeyCode::Q) {
         x_delta -= player.speed * time.delta_seconds();
-        player.state = PlayerState::Moving(Direction::Left);
+        player.state = PlayerState::Move(Direction::Left);
         player.direction = Direction::Left;
     }
 
@@ -114,11 +114,11 @@ fn player_action(
     time: Res<Time>,
     mouse_btn: Res<Input<MouseButton>>,
     mut commands: Commands,
-    mut query: Query<(&mut Player, &mut PlayerAction, &Transform)>,
+    mut player_query: Query<(&mut Player, &mut PlayerAction, &Transform)>,
 
-    mut tree_query: Query<(Entity, &mut Health, &Transform), (With<Tree>, Without<Player>)>,
+    mut tree_query: Query<(Entity, &mut Tree, &Transform)>,
 ) {
-    let (mut player, mut action, player_transform) = query.single_mut();
+    let (mut player, mut action, player_transform) = player_query.single_mut();
 
     match action.state {
         ActionState::Perform => {
@@ -139,37 +139,36 @@ fn player_action(
         }
         ActionState::Ready => {
             if mouse_btn.just_pressed(MouseButton::Left) {
-                chop_tree(&mut commands, &mut tree_query, player_transform.translation, player.dmg);
                 player.state = PlayerState::Chop(player.direction);
 
                 action.state = ActionState::Perform;
+
+                for (tree_entity, mut tree_struct, tree_transform) in tree_query.iter_mut() {
+                    if player_can_chop_tree(player_transform.translation, tree_transform.translation) {
+                        tree_struct.health -= player.dmg;
+                        if tree_struct.health <= 0 {
+                            commands.entity(tree_entity).despawn();
+                        }
+                    }
+                }
             }
         }
     }
 }
 
-fn chop_tree(
-    commands: &mut Commands,
-    tree_query: &mut Query<(Entity, &mut Health, &Transform), (With<Tree>, Without<Player>)>,
-    player_transform: Vec3,
-    player_dmg: i16,
-) {
-    for (tree_entity, mut tree_health, tree_transform) in tree_query.iter_mut() {
-        let collide = collide(
-            player_transform,
-            Vec2::new(9.0 * SCALE, 12.0 * SCALE), // player size
-            tree_transform.translation,
-            Vec2::splat(32.0 * SCALE), // full tree sprite size
-        );
-        match collide {
-            Some(Collision::Right) | Some(Collision::Left) | Some(Collision::Inside) => {
-                tree_health.0 -= player_dmg * 5;
-                if tree_health.0 <= 0 {
-                    commands.entity(tree_entity).despawn();
-                }
-            }
-            _ => {}
-        }
+fn player_can_chop_tree(
+    player_pos: Vec3,
+    tree_pos: Vec3,
+) -> bool {
+    let collide = collide(
+        player_pos,
+        Vec2::new(9.0 * SCALE, 12.0 * SCALE), // player size
+        tree_pos,
+        Vec2::splat(32.0 * SCALE), // full tree sprite size
+    );
+    match collide {
+        Some(Collision::Right) | Some(Collision::Left) | Some(Collision::Inside) => true,
+        _ => false,
     }
 }
 
@@ -204,7 +203,7 @@ fn spawn_player(mut commands: Commands, texture_atlas_handle: Res<AtlasHandle>) 
             state: PlayerState::Stand(Direction::Right),
             direction: Direction::Right,
             speed: 80.0 * SCALE,
-            dmg: 10,
+            dmg: 40,
         })
         .insert(PlayerAction {
             state: ActionState::Ready,
@@ -247,15 +246,15 @@ fn animate_sprite(
 ) {
     for (player, mut sprite, mut animations) in query.iter_mut() {
         match player.state {
-            PlayerState::Moving(Direction::Right) => {
+            PlayerState::Move(Direction::Right) => {
                 let animation = &mut animations.animations[0];
                 animation.update(&time, &mut sprite);
             }
-            PlayerState::Moving(Direction::Left) => {
+            PlayerState::Move(Direction::Left) => {
                 let animation = &mut animations.animations[1];
                 animation.update(&time, &mut sprite);
             }
-            PlayerState::Moving(Direction::Up) | PlayerState::Moving(Direction::Down) => {
+            PlayerState::Move(Direction::Up) | PlayerState::Move(Direction::Down) => {
                 let animation = match player.direction {
                     Direction::Right => &mut animations.animations[2],
                     Direction::Left => &mut animations.animations[3],
