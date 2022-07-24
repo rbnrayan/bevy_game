@@ -1,5 +1,6 @@
 use crate::{
     animations::{Animation, AnimationTimer, Animations},
+    coins::{add_coins, Coins, CoinsAmount},
     sprite_popup::trigger_sprite_popup,
     texture_atlas::AtlasHandle,
     trees::Tree,
@@ -42,12 +43,12 @@ pub struct Speed(pub f32);
 
 // Define an action and it's behavior
 #[derive(Component)]
-struct PlayerAction {
+pub struct PlayerAction {
     pub state: ActionState,
     pub action_timer: Timer,
     pub recover_timer: Timer,
 }
-enum ActionState {
+pub enum ActionState {
     Perform,
     Recover,
     Ready,
@@ -123,8 +124,9 @@ pub fn player_movement(
 
 // match on the player action state (Ready, Perform, Recover)
 // if the state is 'Ready', check if the player collide with a tree (player_can_chop_tree)
-// if so, trigger a sprite to pop above the player and perform the action (damage the tree)
-fn player_action(
+// if so, trigger a sprite to pop above the player, add coins to the player and then
+// perform the action (damage the tree)
+pub fn player_action(
     asset_server: Res<AssetServer>,
 
     time: Res<Time>,
@@ -139,6 +141,7 @@ fn player_action(
     )>,
 
     mut tree_query: Query<(Entity, &mut Tree, &Transform)>,
+    mut coins_amount_query: Query<(&mut CoinsAmount, &mut Text)>,
 ) {
     let (mut action, mut player_state, player_direction, player_transform, player_strength) =
         player_query.single_mut();
@@ -175,9 +178,12 @@ fn player_action(
                         trigger_sprite_popup(
                             &mut commands,
                             &asset_server,
-                            player_transform.translation + Vec3::new(0.0, 1.8 * TILE_SIZE, 0.0),
-                            "wood log.png",
+                            player_transform.translation + Vec3::new(0.5, 1.8 * TILE_SIZE, 0.0),
+                            SCALE * 0.5,
+                            "wood_log.png",
                         );
+                        // add 2 coins for each wood log
+                        add_coins(2, &mut coins_amount_query);
                         // chop the tree, inflict damage to the target tree
                         // (move to a fn?)
                         tree_struct.health -= player_strength.0 as i16;

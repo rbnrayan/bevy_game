@@ -1,11 +1,11 @@
-use crate::{SCALE, TILE_SIZE};
+use crate::{TILE_SIZE, player::player_action};
 use bevy::prelude::*;
 
 pub struct SpritePopupPlugin;
 
 impl Plugin for SpritePopupPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(update_sprite_popup);
+        app.add_system(update_sprite_popup.after(player_action));
     }
 }
 
@@ -16,6 +16,7 @@ pub fn trigger_sprite_popup(
     commands: &mut Commands,
     asset_server: &Res<AssetServer>,
     pos: Vec3,
+    scale: f32,
     sprite_path: &str,
 ) {
     let texture_handle = asset_server.load(sprite_path);
@@ -26,8 +27,7 @@ pub fn trigger_sprite_popup(
                 ..Default::default()
             },
             texture: texture_handle,
-            transform: Transform::from_scale(Vec3::splat(SCALE / 2.0))
-                .with_translation(pos),
+            transform: Transform::from_scale(Vec3::splat(scale)).with_translation(pos),
             ..Default::default()
         })
         .insert(SpritePopup(Timer::from_seconds(0.5, true)));
