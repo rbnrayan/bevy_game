@@ -238,7 +238,7 @@ fn spawn_player(mut commands: Commands, texture_atlas_handle: Res<AtlasHandle>) 
         })
         .insert(Player)
         .insert(Strength(40))
-        .insert(Speed(4.0 * TILE_SIZE * SCALE))
+        .insert(Speed(3.0 * TILE_SIZE * SCALE))
         .insert(PlayerState::Stand(Direction::Right))
         .insert(Direction::Right)
         .insert(PlayerAction {

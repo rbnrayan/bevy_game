@@ -10,20 +10,20 @@ pub const TILE_COUNT_Y: usize = 5;
 
 mod animations;
 mod camera;
+mod coins;
 mod map;
 mod player;
 mod sprite_popup;
 mod texture_atlas;
 mod trees;
-mod coins;
 
 use camera::CameraPlugin;
+use coins::CoinsPlugin;
 use map::MapPlugin;
 use player::PlayerPlugin;
 use sprite_popup::SpritePopupPlugin;
 use texture_atlas::AtlasPlugin;
 use trees::TreePlugin;
-use coins::CoinsPlugin;
 
 fn main() {
     let height = 900.0;
