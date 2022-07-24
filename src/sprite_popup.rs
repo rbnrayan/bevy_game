@@ -27,7 +27,7 @@ pub fn trigger_sprite_popup(
             },
             texture: texture_handle,
             transform: Transform::from_scale(Vec3::splat(SCALE / 2.0))
-                .with_translation(pos + Vec3::new(0.0, 2.0 * TILE_SIZE, 0.0)),
+                .with_translation(pos),
             ..Default::default()
         })
         .insert(SpritePopup(Timer::from_seconds(0.5, true)));

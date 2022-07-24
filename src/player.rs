@@ -175,7 +175,7 @@ fn player_action(
                         trigger_sprite_popup(
                             &mut commands,
                             &asset_server,
-                            player_transform.translation,
+                            player_transform.translation + Vec3::new(0.0, 1.8 * TILE_SIZE, 0.0),
                             "wood log.png",
                         );
                         // chop the tree, inflict damage to the target tree
