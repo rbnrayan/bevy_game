@@ -1,5 +1,6 @@
 use crate::{
     animations::{Animation, AnimationTimer, Animations},
+    sprite_popup::trigger_sprite_popup,
     texture_atlas::AtlasHandle,
     trees::Tree,
     SCALE, TILE_COUNT_X, TILE_COUNT_Y, TILE_SIZE,
@@ -40,6 +41,7 @@ pub enum PlayerState {
     Move(Direction),
     Chop(Direction),
 }
+
 #[derive(Clone, Copy)]
 pub enum Direction {
     Up,
@@ -53,7 +55,7 @@ pub struct Player {
     pub state: PlayerState,
     pub direction: Direction,
     pub speed: f32,
-    pub dmg: i16,
+    pub dmg: u16,
 }
 
 pub fn player_movement(
@@ -111,6 +113,8 @@ pub fn player_movement(
 }
 
 fn player_action(
+    asset_server: Res<AssetServer>,
+
     time: Res<Time>,
     mouse_btn: Res<Input<MouseButton>>,
     mut commands: Commands,
@@ -143,9 +147,21 @@ fn player_action(
 
                 action.state = ActionState::Perform;
 
+                // check each tree if it can be chopped
                 for (tree_entity, mut tree_struct, tree_transform) in tree_query.iter_mut() {
-                    if player_can_chop_tree(player_transform.translation, tree_transform.translation) {
-                        tree_struct.health -= player.dmg;
+                    if player_can_chop_tree(
+                        player_transform.translation,
+                        tree_transform.translation,
+                    ) {
+                        trigger_sprite_popup(
+                            &mut commands,
+                            &asset_server,
+                            player_transform.translation,
+                            "wood log.png",
+                        );
+                        // chop the tree, inflict damage to the target tree
+                        // (move to a fn?)
+                        tree_struct.health -= player.dmg as i16;
                         if tree_struct.health <= 0 {
                             commands.entity(tree_entity).despawn();
                         }
@@ -156,10 +172,7 @@ fn player_action(
     }
 }
 
-fn player_can_chop_tree(
-    player_pos: Vec3,
-    tree_pos: Vec3,
-) -> bool {
+fn player_can_chop_tree(player_pos: Vec3, tree_pos: Vec3) -> bool {
     let collide = collide(
         player_pos,
         Vec2::new(9.0 * SCALE, 12.0 * SCALE), // player size

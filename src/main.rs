@@ -12,6 +12,7 @@ mod animations;
 mod camera;
 mod map;
 mod player;
+mod sprite_popup;
 mod texture_atlas;
 mod trees;
 
@@ -20,6 +21,7 @@ use map::MapPlugin;
 use player::PlayerPlugin;
 use texture_atlas::AtlasPlugin;
 use trees::TreePlugin;
+use crate::sprite_popup::SpritePopupPlugin;
 
 fn main() {
     let height = 900.0;
@@ -38,5 +40,6 @@ fn main() {
         .add_plugin(MapPlugin)
         .add_plugin(PlayerPlugin)
         .add_plugin(TreePlugin)
+        .add_plugin(SpritePopupPlugin)
         .run();
 }
