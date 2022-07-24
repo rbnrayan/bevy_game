@@ -23,106 +23,114 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-pub enum ActionState {
-    Perform,
-    Recover,
-    Ready,
-}
-
+// Movements related components/structs:
 #[derive(Component)]
-pub struct PlayerAction {
-    pub state: ActionState,
-    pub action_timer: Timer,
-    pub recover_timer: Timer,
-}
-
 pub enum PlayerState {
     Stand(Direction),
     Move(Direction),
     Chop(Direction),
 }
-
-#[derive(Clone, Copy)]
+#[derive(Component, Clone, Copy)]
 pub enum Direction {
     Up,
     Down,
     Right,
     Left,
 }
-
 #[derive(Component)]
-pub struct Player {
-    pub state: PlayerState,
-    pub direction: Direction,
-    pub speed: f32,
-    pub dmg: u16,
-}
+pub struct Speed(pub f32);
 
+// Define an action and it's behavior
+#[derive(Component)]
+struct PlayerAction {
+    pub state: ActionState,
+    pub action_timer: Timer,
+    pub recover_timer: Timer,
+}
+enum ActionState {
+    Perform,
+    Recover,
+    Ready,
+}
+// Represent how much damage the player inflicts to a tree
+#[derive(Component)]
+pub struct Strength(u32);
+
+// The Player itself
+#[derive(Component)]
+pub struct Player;
+
+// - check which direction key (Z,Q,S,D) is pressed, then compute how much to move on the x and y axis
+// - change the player state according to the direction
+// - check if the player encounter a wall/tree and move him according to collisions
 pub fn player_movement(
     time: Res<Time>,
     keys: Res<Input<KeyCode>>,
     tree_query: Query<&Transform, (With<Tree>, Without<Player>)>,
-    mut query: Query<(&mut Transform, &mut Player)>,
+    mut player_query: Query<(&mut Transform, &mut PlayerState, &mut Direction, &Speed), With<Player>>,
 ) {
-    let (mut transform, mut player) = query.single_mut();
+    let (mut player_transform, mut player_state, mut player_direction, player_speed) = player_query.single_mut();
 
-    match player.state {
+    match *player_state {
         PlayerState::Chop(_) => {}
-        _ => player.state = PlayerState::Stand(player.direction),
+        _ => *player_state = PlayerState::Stand(*player_direction),
     }
 
     let mut y_delta = 0.0;
     if keys.pressed(KeyCode::Z) {
-        y_delta += player.speed * time.delta_seconds();
-        player.state = PlayerState::Move(Direction::Up);
+        y_delta += player_speed.0 * time.delta_seconds();
+        *player_state = PlayerState::Move(Direction::Up);
     }
     if keys.pressed(KeyCode::S) {
-        y_delta -= player.speed * time.delta_seconds();
-        player.state = PlayerState::Move(Direction::Down);
+        y_delta -= player_speed.0 * time.delta_seconds();
+        *player_state = PlayerState::Move(Direction::Down);
     }
 
     let mut x_delta = 0.0;
     if keys.pressed(KeyCode::D) {
-        x_delta += player.speed * time.delta_seconds();
-        player.state = PlayerState::Move(Direction::Right);
-        player.direction = Direction::Right;
+        x_delta += player_speed.0 * time.delta_seconds();
+        *player_state = PlayerState::Move(Direction::Right);
+        *player_direction = Direction::Right;
     }
     if keys.pressed(KeyCode::Q) {
-        x_delta -= player.speed * time.delta_seconds();
-        player.state = PlayerState::Move(Direction::Left);
-        player.direction = Direction::Left;
+        x_delta -= player_speed.0 * time.delta_seconds();
+        *player_state = PlayerState::Move(Direction::Left);
+        *player_direction = Direction::Left;
     }
 
-    let target = transform.translation + Vec3::new(0.0, y_delta, 0.0);
+    let target = player_transform.translation + Vec3::new(0.0, y_delta, 0.0);
 
     if target.y < TILE_SIZE * SCALE * TILE_COUNT_Y as f32
         && target.y > -(TILE_SIZE * SCALE * TILE_COUNT_Y as f32)
         && !tree_collision(target, &tree_query)
     {
-        transform.translation = target;
+        player_transform.translation = target;
     }
 
-    let target = transform.translation + Vec3::new(x_delta, 0.0, 0.0);
+    let target = player_transform.translation + Vec3::new(x_delta, 0.0, 0.0);
 
     if target.x < TILE_SIZE * SCALE * TILE_COUNT_X as f32
         && target.x > -(TILE_SIZE * SCALE * TILE_COUNT_X as f32)
         && !tree_collision(target, &tree_query)
     {
-        transform.translation = target;
+        player_transform.translation = target;
     }
 }
 
+// match on the player action state (Ready, Perform, Recover)
+// if the state is 'Ready', check if the player collide with a tree (player_can_chop_tree)
+// if so, trigger a sprite to pop above the player and perform the action (damage the tree)
 fn player_action(
     asset_server: Res<AssetServer>,
 
     time: Res<Time>,
     mouse_btn: Res<Input<MouseButton>>,
     mut commands: Commands,
-    mut player_query: Query<(&mut Player, &mut PlayerAction, &Transform)>,
+    mut player_query: Query<(&mut PlayerAction, &mut PlayerState, &Direction, &Transform, &Strength)>,
 
     mut tree_query: Query<(Entity, &mut Tree, &Transform)>,
 ) {
-    let (mut player, mut action, player_transform) = player_query.single_mut();
+    let (mut action, mut player_state, player_direction, player_transform, player_strength) = player_query.single_mut();
 
     match action.state {
         ActionState::Perform => {
@@ -131,7 +139,7 @@ fn player_action(
                 action.state = ActionState::Recover;
                 action.action_timer.reset();
 
-                player.state = PlayerState::Stand(player.direction);
+                *player_state = PlayerState::Stand(*player_direction);
             }
         }
         ActionState::Recover => {
@@ -143,7 +151,7 @@ fn player_action(
         }
         ActionState::Ready => {
             if mouse_btn.just_pressed(MouseButton::Left) {
-                player.state = PlayerState::Chop(player.direction);
+                *player_state = PlayerState::Chop(*player_direction);
 
                 action.state = ActionState::Perform;
 
@@ -161,7 +169,7 @@ fn player_action(
                         );
                         // chop the tree, inflict damage to the target tree
                         // (move to a fn?)
-                        tree_struct.health -= player.dmg as i16;
+                        tree_struct.health -= player_strength.0 as i16;
                         if tree_struct.health <= 0 {
                             commands.entity(tree_entity).despawn();
                         }
@@ -172,6 +180,8 @@ fn player_action(
     }
 }
 
+// check if the player position collide with a tree
+// return true if so, and only if it collide on the Right|Left or Inside
 fn player_can_chop_tree(player_pos: Vec3, tree_pos: Vec3) -> bool {
     let collide = collide(
         player_pos,
@@ -185,6 +195,7 @@ fn player_can_chop_tree(player_pos: Vec3, tree_pos: Vec3) -> bool {
     }
 }
 
+// check for a collision between the player position and a tree
 pub fn tree_collision(
     target_player_pos: Vec3,
     tree_query: &Query<&Transform, (With<Tree>, Without<Player>)>,
@@ -204,6 +215,8 @@ pub fn tree_collision(
     false
 }
 
+// spawn the player with the texture atlas for animations, scale him, and increase the z axis
+// insert all the components needed and the animations
 fn spawn_player(mut commands: Commands, texture_atlas_handle: Res<AtlasHandle>) {
     commands
         .spawn_bundle(SpriteSheetBundle {
@@ -212,12 +225,11 @@ fn spawn_player(mut commands: Commands, texture_atlas_handle: Res<AtlasHandle>) 
                 .with_translation(Vec3::new(0.0, 0.0, 10.0)),
             ..Default::default()
         })
-        .insert(Player {
-            state: PlayerState::Stand(Direction::Right),
-            direction: Direction::Right,
-            speed: 80.0 * SCALE,
-            dmg: 40,
-        })
+        .insert(Player)
+        .insert(Strength(40))
+        .insert(Speed(4.0 * TILE_SIZE * SCALE))
+        .insert(PlayerState::Stand(Direction::Right))
+        .insert(Direction::Right)
         .insert(PlayerAction {
             state: ActionState::Ready,
             action_timer: Timer::from_seconds(0.2, false),
@@ -253,12 +265,13 @@ fn spawn_player(mut commands: Commands, texture_atlas_handle: Res<AtlasHandle>) 
         });
 }
 
+// Animate the player sprite according to the state and direction
 fn animate_sprite(
     time: Res<Time>,
-    mut query: Query<(&Player, &mut TextureAtlasSprite, &mut Animations)>,
+    mut query: Query<(&PlayerState, &Direction, &mut TextureAtlasSprite, &mut Animations), With<Player>>,
 ) {
-    for (player, mut sprite, mut animations) in query.iter_mut() {
-        match player.state {
+    for (player_state, player_direction, mut sprite, mut animations) in query.iter_mut() {
+        match *player_state {
             PlayerState::Move(Direction::Right) => {
                 let animation = &mut animations.animations[0];
                 animation.update(&time, &mut sprite);
@@ -268,7 +281,7 @@ fn animate_sprite(
                 animation.update(&time, &mut sprite);
             }
             PlayerState::Move(Direction::Up) | PlayerState::Move(Direction::Down) => {
-                let animation = match player.direction {
+                let animation = match player_direction {
                     Direction::Right => &mut animations.animations[2],
                     Direction::Left => &mut animations.animations[3],
                     _ => panic!("Player: Unexpected direction"),
