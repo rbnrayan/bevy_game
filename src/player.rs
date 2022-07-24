@@ -67,9 +67,13 @@ pub fn player_movement(
     time: Res<Time>,
     keys: Res<Input<KeyCode>>,
     tree_query: Query<&Transform, (With<Tree>, Without<Player>)>,
-    mut player_query: Query<(&mut Transform, &mut PlayerState, &mut Direction, &Speed), With<Player>>,
+    mut player_query: Query<
+        (&mut Transform, &mut PlayerState, &mut Direction, &Speed),
+        With<Player>,
+    >,
 ) {
-    let (mut player_transform, mut player_state, mut player_direction, player_speed) = player_query.single_mut();
+    let (mut player_transform, mut player_state, mut player_direction, player_speed) =
+        player_query.single_mut();
 
     match *player_state {
         PlayerState::Chop(_) => {}
@@ -126,11 +130,18 @@ fn player_action(
     time: Res<Time>,
     mouse_btn: Res<Input<MouseButton>>,
     mut commands: Commands,
-    mut player_query: Query<(&mut PlayerAction, &mut PlayerState, &Direction, &Transform, &Strength)>,
+    mut player_query: Query<(
+        &mut PlayerAction,
+        &mut PlayerState,
+        &Direction,
+        &Transform,
+        &Strength,
+    )>,
 
     mut tree_query: Query<(Entity, &mut Tree, &Transform)>,
 ) {
-    let (mut action, mut player_state, player_direction, player_transform, player_strength) = player_query.single_mut();
+    let (mut action, mut player_state, player_direction, player_transform, player_strength) =
+        player_query.single_mut();
 
     match action.state {
         ActionState::Perform => {
@@ -268,7 +279,15 @@ fn spawn_player(mut commands: Commands, texture_atlas_handle: Res<AtlasHandle>) 
 // Animate the player sprite according to the state and direction
 fn animate_sprite(
     time: Res<Time>,
-    mut query: Query<(&PlayerState, &Direction, &mut TextureAtlasSprite, &mut Animations), With<Player>>,
+    mut query: Query<
+        (
+            &PlayerState,
+            &Direction,
+            &mut TextureAtlasSprite,
+            &mut Animations,
+        ),
+        With<Player>,
+    >,
 ) {
     for (player_state, player_direction, mut sprite, mut animations) in query.iter_mut() {
         match *player_state {

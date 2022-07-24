@@ -15,13 +15,15 @@ mod player;
 mod sprite_popup;
 mod texture_atlas;
 mod trees;
+mod coins;
 
 use camera::CameraPlugin;
 use map::MapPlugin;
 use player::PlayerPlugin;
+use sprite_popup::SpritePopupPlugin;
 use texture_atlas::AtlasPlugin;
 use trees::TreePlugin;
-use crate::sprite_popup::SpritePopupPlugin;
+use coins::CoinsPlugin;
 
 fn main() {
     let height = 900.0;
@@ -41,5 +43,6 @@ fn main() {
         .add_plugin(PlayerPlugin)
         .add_plugin(TreePlugin)
         .add_plugin(SpritePopupPlugin)
+        .add_plugin(CoinsPlugin)
         .run();
 }
