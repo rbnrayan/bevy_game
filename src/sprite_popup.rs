@@ -44,5 +44,6 @@ fn update_sprite_popup(
             commands.entity(entity_id).despawn();
         }
         transform.translation.y += 1.5 * TILE_SIZE * time.delta_seconds();
+        transform.scale -= Vec3::new(0.02, 0.02, 0.0);
     }
 }
