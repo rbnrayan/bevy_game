@@ -10,17 +10,17 @@ pub const TILE_COUNT_Y: usize = 5;
 
 mod animations;
 mod camera;
-mod coins;
 mod map;
 mod player;
+mod resource_counter;
 mod sprite_popup;
 mod texture_atlas;
 mod trees;
 
 use camera::CameraPlugin;
-use coins::CoinsPlugin;
 use map::MapPlugin;
 use player::PlayerPlugin;
+use resource_counter::ResourceCounterPlugin;
 use sprite_popup::SpritePopupPlugin;
 use texture_atlas::AtlasPlugin;
 use trees::TreePlugin;
@@ -43,6 +43,6 @@ fn main() {
         .add_plugin(PlayerPlugin)
         .add_plugin(TreePlugin)
         .add_plugin(SpritePopupPlugin)
-        .add_plugin(CoinsPlugin)
+        .add_plugin(ResourceCounterPlugin)
         .run();
 }

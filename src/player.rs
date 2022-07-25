@@ -1,6 +1,5 @@
 use crate::{
     animations::{Animation, AnimationTimer, Animations},
-    coins::{add_coins, Coins, CoinsAmount},
     sprite_popup::trigger_sprite_popup,
     texture_atlas::AtlasHandle,
     trees::Tree,
@@ -141,7 +140,6 @@ pub fn player_action(
     )>,
 
     mut tree_query: Query<(Entity, &mut Tree, &Transform)>,
-    mut coins_amount_query: Query<(&mut CoinsAmount, &mut Text)>,
 ) {
     let (mut action, mut player_state, player_direction, player_transform, player_strength) =
         player_query.single_mut();
@@ -182,8 +180,6 @@ pub fn player_action(
                             SCALE * 0.5,
                             "wood_log.png",
                         );
-                        // add 2 coins for each wood log
-                        add_coins(2, &mut coins_amount_query);
                         // chop the tree, inflict damage to the target tree
                         // (move to a fn?)
                         tree_struct.health -= player_strength.0 as i16;

@@ -1,4 +1,4 @@
-use crate::{TILE_SIZE, player::player_action};
+use crate::{player::player_action, TILE_SIZE};
 use bevy::prelude::*;
 
 pub struct SpritePopupPlugin;
