@@ -2,7 +2,8 @@ use crate::{
     animations::{Animation, AnimationTimer, Animations},
     map::{spawn_map, Map},
     texture_atlas::AtlasHandle,
-    SCALE, TILE_COUNT_X, TILE_COUNT_Y, TILE_SIZE,
+    map::{TILE_COUNT_X, TILE_COUNT_Y, TILE_SIZE},
+    SCALE, 
 };
 use bevy::prelude::*;
 use rand::{self, Rng};

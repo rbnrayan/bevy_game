@@ -1,6 +1,7 @@
 use crate::{
     player::{player_movement, Player},
-    SCALE, TILE_COUNT_X, TILE_COUNT_Y, TILE_SIZE,
+    map::{TILE_COUNT_X, TILE_COUNT_Y, TILE_SIZE},
+    SCALE,
 };
 use bevy::prelude::*;
 
@@ -24,13 +25,13 @@ fn camera_follow_player(
     let mut camera_transform = camera_query.single_mut();
     let player_transform = player_query.single();
 
-    if player_transform.translation.x < TILE_SIZE * SCALE * (TILE_COUNT_X as f32 / 2.0)
-        && player_transform.translation.x > TILE_SIZE * SCALE * -(TILE_COUNT_X as f32 / 2.0)
+    if player_transform.translation.x < TILE_SIZE * SCALE * (TILE_COUNT_X as f32 / 1.5)
+        && player_transform.translation.x > TILE_SIZE * SCALE * -(TILE_COUNT_X as f32 / 1.5)
     {
         camera_transform.translation.x = player_transform.translation.x;
     }
-    if player_transform.translation.y < TILE_SIZE * SCALE * (TILE_COUNT_Y as f32 / 1.5)
-        && player_transform.translation.y > TILE_SIZE * SCALE * -(TILE_COUNT_Y as f32 / 1.5)
+    if player_transform.translation.y < TILE_SIZE * SCALE * (TILE_COUNT_Y as f32 / 1.2)
+        && player_transform.translation.y > TILE_SIZE * SCALE * -(TILE_COUNT_Y as f32 / 1.2)
     {
         camera_transform.translation.y = player_transform.translation.y;
     }

@@ -1,11 +1,11 @@
-use crate::{player::player_action, TILE_SIZE};
+use crate::{player, map::TILE_SIZE};
 use bevy::prelude::*;
 
 pub struct SpritePopupPlugin;
 
 impl Plugin for SpritePopupPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(update_sprite_popup.after(player_action));
+        app.add_system(update_sprite_popup.after(player::chop_wood_action));
     }
 }
 

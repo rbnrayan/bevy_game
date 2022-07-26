@@ -1,5 +1,11 @@
-use crate::{SCALE, TILE_COUNT_X, TILE_COUNT_Y, TILE_SIZE};
+use crate::SCALE;
 use bevy::prelude::*;
+
+pub const TILE_SIZE: f32 = 32.0;
+
+// Map size: 8 * 5
+pub const TILE_COUNT_X: usize = 12;
+pub const TILE_COUNT_Y: usize = 8;
 
 pub struct MapPlugin;
 

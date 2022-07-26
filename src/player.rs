@@ -3,7 +3,8 @@ use crate::{
     sprite_popup::trigger_sprite_popup,
     texture_atlas::AtlasHandle,
     trees::Tree,
-    SCALE, TILE_COUNT_X, TILE_COUNT_Y, TILE_SIZE,
+    map::{TILE_COUNT_X, TILE_COUNT_Y, TILE_SIZE},
+    SCALE, resource_counter::{ResourceCounter, WoodResource},
 };
 use bevy::{
     prelude::*,
@@ -18,7 +19,7 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(spawn_player)
             .add_system(player_movement)
-            .add_system(player_action)
+            .add_system(chop_wood_action)
             .add_system(animate_sprite.after(player_movement));
     }
 }
@@ -125,7 +126,7 @@ pub fn player_movement(
 // if the state is 'Ready', check if the player collide with a tree (player_can_chop_tree)
 // if so, trigger a sprite to pop above the player, add coins to the player and then
 // perform the action (damage the tree)
-pub fn player_action(
+pub fn chop_wood_action(
     asset_server: Res<AssetServer>,
 
     time: Res<Time>,
@@ -140,6 +141,7 @@ pub fn player_action(
     )>,
 
     mut tree_query: Query<(Entity, &mut Tree, &Transform)>,
+    mut wood_res_query: Query<&mut ResourceCounter, With<WoodResource>>,
 ) {
     let (mut action, mut player_state, player_direction, player_transform, player_strength) =
         player_query.single_mut();
@@ -173,6 +175,9 @@ pub fn player_action(
                         player_transform.translation,
                         tree_transform.translation,
                     ) {
+                        let mut wood_count = wood_res_query.single_mut();
+                        wood_count.0 += 1;
+
                         trigger_sprite_popup(
                             &mut commands,
                             &asset_server,
@@ -180,6 +185,7 @@ pub fn player_action(
                             SCALE * 0.5,
                             "wood_log.png",
                         );
+
                         // chop the tree, inflict damage to the target tree
                         // (move to a fn?)
                         tree_struct.health -= player_strength.0 as i16;
