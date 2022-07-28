@@ -30,8 +30,8 @@ pub fn spawn_map(mut commands: Commands, mut map: ResMut<Map>, asset_server: Res
                         texture: texture_handle.clone(),
                         transform: Transform::from_scale(Vec3::splat(SCALE)).with_translation(
                             Vec3::new(
-                                TILE_SIZE * (SCALE * x as f32),
-                                TILE_SIZE * (SCALE * y as f32),
+                                TILE_SIZE * SCALE * x as f32,
+                                TILE_SIZE * SCALE * y as f32,
                                 1.0,
                             ),
                         ),

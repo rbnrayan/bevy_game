@@ -1,7 +1,7 @@
 use crate::{
-    player::{Player, player_movement},
+    map::{TILE_COUNT_X, TILE_COUNT_Y, TILE_SIZE},
+    player::{player_movement, Player},
     SCALE,
-    map::{TILE_SIZE, TILE_COUNT_X, TILE_COUNT_Y},
 };
 use bevy::prelude::*;
 
@@ -96,7 +96,10 @@ fn new_resource_counter<T: Component + Clone>(
         .insert(resource.0.clone())
         .id();
 
-    commands.entity(resource_sprite).add_child(resource_text).insert(GameResource);
+    commands
+        .entity(resource_sprite)
+        .add_child(resource_text)
+        .insert(GameResource);
 }
 
 fn update_resource_pos(
@@ -129,9 +132,7 @@ fn update_resource_pos(
     }
 }
 
-fn update_res_count(
-    mut resource_counter: Query<(&mut Text, &ResourceCounter)>,
-) {
+fn update_res_count(mut resource_counter: Query<(&mut Text, &ResourceCounter)>) {
     for (mut resource_text, resource_count) in resource_counter.iter_mut() {
         resource_text.sections[0].value = resource_count.0.to_string();
     }

@@ -1,10 +1,11 @@
 use crate::{
     animations::{Animation, AnimationTimer, Animations},
+    map::{TILE_COUNT_X, TILE_COUNT_Y, TILE_SIZE},
+    resource_counter::{ResourceCounter, WoodResource},
     sprite_popup::trigger_sprite_popup,
     texture_atlas::AtlasHandle,
     trees::Tree,
-    map::{TILE_COUNT_X, TILE_COUNT_Y, TILE_SIZE},
-    SCALE, resource_counter::{ResourceCounter, WoodResource},
+    SCALE,
 };
 use bevy::{
     prelude::*,

@@ -8,6 +8,7 @@ mod camera;
 mod map;
 mod player;
 mod resource_counter;
+mod sell_sign;
 mod sprite_popup;
 mod texture_atlas;
 mod trees;
@@ -16,6 +17,7 @@ use camera::CameraPlugin;
 use map::MapPlugin;
 use player::PlayerPlugin;
 use resource_counter::ResourceCounterPlugin;
+use sell_sign::SellSignPlugin;
 use sprite_popup::SpritePopupPlugin;
 use texture_atlas::AtlasPlugin;
 use trees::TreePlugin;
@@ -39,5 +41,6 @@ fn main() {
         .add_plugin(TreePlugin)
         .add_plugin(SpritePopupPlugin)
         .add_plugin(ResourceCounterPlugin)
+        .add_plugin(SellSignPlugin)
         .run();
 }

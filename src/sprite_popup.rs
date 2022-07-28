@@ -1,4 +1,4 @@
-use crate::{player, map::TILE_SIZE};
+use crate::{map::TILE_SIZE, player};
 use bevy::prelude::*;
 
 pub struct SpritePopupPlugin;

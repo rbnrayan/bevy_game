@@ -1,6 +1,6 @@
 use crate::{
-    player::{player_movement, Player},
     map::{TILE_COUNT_X, TILE_COUNT_Y, TILE_SIZE},
+    player::{player_movement, Player},
     SCALE,
 };
 use bevy::prelude::*;
